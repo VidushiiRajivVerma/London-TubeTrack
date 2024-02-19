@@ -1,0 +1,148 @@
+import pandas as pd
+import networkx as nx
+
+# Loading the Excel file into a DataFrame
+ds = pd.read_excel(r"C:\Users\asus\OneDrive\Desktop\London Underground data.xlsx", header=None, names=['line', 'start', 'end', 'duration'])
+
+ds = ds.dropna()  # Removing rows with missing or NaN values
+
+# Created a directed graph for the original data
+graph_original = nx.from_pandas_edgelist(ds, "start", "end", ["duration"], create_using=nx.DiGraph)
+
+# Created a directed graph for the reversed data
+ds_reversed = ds.copy()
+ds_reversed[['start', 'end']] = ds[['end', 'start']]
+graph_reversed = nx.from_pandas_edgelist(ds_reversed, "start", "end", ["duration"], create_using=nx.DiGraph)
+
+# Combining the two graphs
+combined_graph = nx.compose(graph_original, graph_reversed)
+def display_tube_map_ascii():
+    print("                          London Underground Route Planner")
+    print("----------------------------------------------------------------------------------------------------------")
+    print("\nDisplaying Tube Line Map:")
+
+    tube_map_ascii = """
+                    Victoria
+                       |
+                       |
+                       v
+    Circle - Hammersmith & City - Metropolitan
+           |               |           
+           v               v          
+        Bakerloo         Central
+           |               |           
+           v               v          
+         Jubilee         Northern
+           |               |           
+           v               v          
+         Piccadilly      District
+
+        """
+
+    print(tube_map_ascii)
+
+def find_shortest_path(start, end):
+    try:
+        # Uses the shortest_path function
+        shortest_path = nx.shortest_path(combined_graph, source=start, target=end, weight="duration")
+        return shortest_path
+    except nx.NetworkXNoPath:
+        # Handle the case when there is no path between the stations
+        return None
+
+def calculate_total_duration(path):
+    if path:
+        # Calculates the total duration based on the durations of edges in the path.
+        total_duration = sum(combined_graph[path[i]][path[i + 1]]["duration"] for i in range(len(path) - 1))
+        return total_duration
+    else:
+        return None
+
+def calculate_total_stops(path):
+    if path:
+        # Counts the number of stops in the path.
+        total_stops = len(path) - 1
+        return total_stops
+    else:
+        return None
+
+def find_shortest_path_user_input():
+    print("\nFind the shortest path between stations.")
+    start_station = input("Enter the starting station: ").strip().title()
+    end_station = input("Enter the destination station: ").strip().title()
+
+    shortest_path = find_shortest_path(start_station, end_station)
+
+    print("\nRoute Information:")
+    if shortest_path:
+        print(f"Shortest Path : {shortest_path}")
+    else:
+        print(f"No path found from {start_station} to {end_station}")
+
+def calculate_total_duration_user_input():
+    print("\nCalculate the total duration of the travel.")
+    start_station = input("Enter the starting station: ").strip().title()
+    end_station = input("Enter the destination station: ").strip().title()
+
+    shortest_path = find_shortest_path(start_station, end_station)
+    total_duration = calculate_total_duration(shortest_path)
+
+    print("\nTotal Duration Information:")
+    if shortest_path:
+        print(f"Total Duration (in minutes): {total_duration}")
+    else:
+        print(f"No path found from {start_station} to {end_station}")
+
+def calculate_total_stops_user_input():
+    print("\nCalculate Total Stops/Stations:")
+    start_station = input("Enter the starting station: ").strip().title()
+    end_station = input("Enter the destination station: ").strip().title()
+
+    shortest_path = find_shortest_path(start_station, end_station)
+    total_stops = calculate_total_stops(shortest_path)
+
+    print("\nTotal Stops/Stations Information:")
+    if shortest_path:
+        print(f"Count of Stations or Stops: {total_stops}")
+    else:
+        print(f"No path found from {start_station} to {end_station}")
+
+def explore_line_information(line):
+    line_data = ds[ds['line'] == line]
+
+    line_graph = nx.from_pandas_edgelist(line_data, "start", "end", ["duration"], create_using=nx.DiGraph)
+
+    print(f"\nInformation for Tube Line '{line}':")
+
+    # Display stations in the line
+    stations = line_data['start'].unique().tolist() + line_data['end'].unique().tolist()
+    unique_stations = list(set(stations))
+    print(f"Stations: {', '.join(unique_stations)}")
+
+    # Display average duration between stations in the line
+    average_duration = line_data['duration'].mean()
+    print(f"Average Duration between Stations: {average_duration:.2f} minutes")
+
+def feedback_system():
+    print("\nImplementing Feedback System:")
+    rating = input("Rate your journey (1-10): ")
+    comments = input("Provide comments (optional): ")
+    print(f"\nFeedback Received: Rating - {rating}, Comments - {comments}")
+
+if __name__ == "__main__":
+    print("----------------------------------------------------------------------------------------------------------")
+    display_tube_map_ascii()
+    print("----------------------------------------------------------------------------------------------------------")
+    find_shortest_path_user_input()
+    print("----------------------------------------------------------------------------------------------------------")
+    calculate_total_duration_user_input()
+    print("----------------------------------------------------------------------------------------------------------")
+    calculate_total_stops_user_input()
+    print("----------------------------------------------------------------------------------------------------------")
+    print("Tube Line Information:")
+    print(
+        "Bakerloo, Central, Circle, District, Hammersmith, Jubliee, Metropolitan, Northern, Piccadily, Victoria and Waterloo")
+    tube_line_to_explore = input("\nEnter a tube line to explore: ")
+    explore_line_information(tube_line_to_explore)
+    print("----------------------------------------------------------------------------------------------------------")
+    feedback_system()
