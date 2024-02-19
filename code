@@ -17,7 +17,7 @@ graph_reversed = nx.from_pandas_edgelist(ds_reversed, "start", "end", ["duration
 # Combining the two graphs
 combined_graph = nx.compose(graph_original, graph_reversed)
 def display_tube_map_ascii():
-    print("                          London Underground Route Planner")
+    print("                          London-TubeTrack")
     print("----------------------------------------------------------------------------------------------------------")
     print("\nDisplaying Tube Line Map:")
 
