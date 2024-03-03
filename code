@@ -47,7 +47,7 @@ def find_shortest_path(start, end):
         shortest_path = nx.shortest_path(combined_graph, source=start, target=end, weight="duration")
         return shortest_path
     except nx.NetworkXNoPath:
-        # Handle the case when there is no path between the stations
+        # case when there is no path between the stations
         return None
 
 def calculate_total_duration(path):
@@ -87,6 +87,12 @@ def calculate_total_duration_user_input():
     shortest_path = find_shortest_path(start_station, end_station)
     total_duration = calculate_total_duration(shortest_path)
 
+    print("\nRoute Information:")
+    if shortest_path:
+        print(f"Path : {shortest_path}")
+    else:
+        print(f"No path found from {start_station} to {end_station}")
+
     print("\nTotal Duration Information:")
     if shortest_path:
         print(f"Total Duration (in minutes): {total_duration}")
@@ -101,11 +107,29 @@ def calculate_total_stops_user_input():
     shortest_path = find_shortest_path(start_station, end_station)
     total_stops = calculate_total_stops(shortest_path)
 
+    print("\nRoute Information:")
+    if shortest_path:
+        print(f"Path : {shortest_path}")
+    else:
+        print(f"No path found from {start_station} to {end_station}")
+
     print("\nTotal Stops/Stations Information:")
     if shortest_path:
         print(f"Count of Stations or Stops: {total_stops}")
     else:
         print(f"No path found from {start_station} to {end_station}")
+
+def display_neighboring_stations(station_name):
+    try:
+        neighbors = list(combined_graph.neighbors(station_name))
+        print(f"\nNeighboring Stations for '{station_name}':")
+
+        for neighbor in neighbors:
+            stops = combined_graph[station_name][neighbor]["duration"]
+            print(f"{neighbor} - {stops} stops")
+
+    except nx.NetworkXError:
+        print(f"Error: Station '{station_name}' not found in the dataset.")
 
 def explore_line_information(line):
     line_data = ds[ds['line'] == line]
@@ -123,6 +147,7 @@ def explore_line_information(line):
     average_duration = line_data['duration'].mean()
     print(f"Average Duration between Stations: {average_duration:.2f} minutes")
 
+
 def feedback_system():
     print("\nImplementing Feedback System:")
     rating = input("Rate your journey (1-10): ")
@@ -139,10 +164,14 @@ if __name__ == "__main__":
     print("----------------------------------------------------------------------------------------------------------")
     calculate_total_stops_user_input()
     print("----------------------------------------------------------------------------------------------------------")
+    station_to_check = input("\nEnter a station to display neighboring stations: ").strip().title()
+    display_neighboring_stations(station_to_check)
+    print("----------------------------------------------------------------------------------------------------------")
     print("Tube Line Information:")
     print(
-        "Bakerloo, Central, Circle, District, Hammersmith, Jubliee, Metropolitan, Northern, Piccadily, Victoria and Waterloo")
+        "Bakerloo, Central, Circle, District, Hammersmith & City, Jubliee, Metropolitan, Northern, Piccadilly, Victoria and Waterloo & City ")
     tube_line_to_explore = input("\nEnter a tube line to explore: ")
     explore_line_information(tube_line_to_explore)
     print("----------------------------------------------------------------------------------------------------------")
     feedback_system()
+
